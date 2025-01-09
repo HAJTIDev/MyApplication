@@ -1,6 +1,9 @@
 package com.example.myapplication;
 
+import static android.app.Service.START_STICKY;
+
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -10,6 +13,9 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -23,7 +29,8 @@ public class AddSubscription extends AppCompatActivity {
 
     private List<Subscription> subscriptions = new ArrayList<>();
     private TextView monthlyCostTextView;
-    private Subscription newSubscription;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,14 +68,13 @@ public class AddSubscription extends AppCompatActivity {
             }
 
             double cost = Double.parseDouble(costStr);
-            newSubscription = new Subscription(name, cost, date);
-            subscriptions.add(newSubscription);
+            subscriptions.add(new Subscription(name, cost, date));
             updateMonthlyCost();
         });
 
         viewSubscriptionsButton.setOnClickListener(v -> {
             Intent intent = new Intent(AddSubscription.this, SubscriptionListActivity.class);
-            intent.putExtra("subscription", newSubscription);
+            intent.putExtra("subscriptions", (Serializable) subscriptions);
             startActivity(intent);
         });
     }
@@ -80,7 +86,22 @@ public class AddSubscription extends AppCompatActivity {
         }
         monthlyCostTextView.setText("Total Monthly Cost: $" + String.format("%.2f", totalCost));
     }
+
+    private void SendNotification(Subscription subscription) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "default")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("Subscription Reminder")
+                .setContentText("Jutro masz opłatę za " + subscription.getName() + " w wysokości $"+ subscription.getCost())
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        notificationManager.notify(0, builder.build());
+    }
 }
+
 class Subscription implements Serializable {
     private String name;
     private double cost;
