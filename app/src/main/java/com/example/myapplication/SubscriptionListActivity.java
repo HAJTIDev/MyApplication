@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -14,7 +15,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-
 public class SubscriptionListActivity extends AppCompatActivity {
 
     private LinearLayout subscriptionListLayout;
@@ -27,16 +27,16 @@ public class SubscriptionListActivity extends AppCompatActivity {
 
         subscriptionListLayout = findViewById(R.id.subscriptionListLayout);
 
-        Subscription newSubscription = (Subscription) getIntent().getSerializableExtra("subscription");
-        if (newSubscription != null) {
-            if (subscriptions != null) {
-                subscriptions.add(newSubscription);
+        subscriptions = (List<Subscription>) getIntent().getSerializableExtra("subscriptions");
+
+        if (subscriptions != null) {
+            for (int i = 0; i < subscriptions.size(); i++) {
+                Subscription subscription = subscriptions.get(i);
+                addSubscriptionView(subscription, i);
             }
         }
-
     }
 
-    @SuppressLint("SetTextI18n")
     private void addSubscriptionView(Subscription subscription, int index) {
         TextView subscriptionDetails = new TextView(this);
         String dueDate = calculateDueDate(subscription.getRenewalDate());
@@ -64,7 +64,7 @@ public class SubscriptionListActivity extends AppCompatActivity {
 
     private String calculateDueDate(String renewalDate) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date date = sdf.parse(renewalDate);
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
